@@ -1,8 +1,15 @@
 const { response } = require('express')
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
+app.use(morgan(':method :url :status :res[content-length]-:response-time ms :content'))
+
+morgan.token('content', function (request, response) {
+  return JSON.stringify(request.body)
+})
+//loggausta tekevä, logaamaan konsoliin tiny-konfiguraation mukaisesti
 
 let persons = [
     {
@@ -84,7 +91,3 @@ const PORT = 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
-
-//virheiden käsittely:
-//nimi tai numero puuttuu -> asiaankuuluva statkoodi ja syy
-//lisättävä nimi on jo luettelossa -> same as above
