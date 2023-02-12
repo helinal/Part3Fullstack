@@ -51,7 +51,7 @@ app.get('/api/persons/:id', (request, response, next) => {
   })
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id).then(result => {
     response.status(204).end()
   })
@@ -60,20 +60,21 @@ app.delete('/api/persons/:id', (request, response) => {
   })
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
-  
-  if (body.name === undefined) {
-    return response.status(400).json({error: 'Cannot add an empty contact.'})
-  }
 
   const person = new Person({
-    name: request.body.name,
-    number: request.body.number,
+    name: body.name,
+    number: body.number,
   })
 
   person.save()
-  response.status(201).end()
+    .then(saved => {
+      response.json(saved)
+      //response.status(201).end()
+    })
+    .catch(error => next(error))
+  
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
@@ -106,6 +107,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({error: 'malformatted id'})
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({error: error.message})
   }
 
   next(error)
